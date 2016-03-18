@@ -28,7 +28,7 @@ var Game = React.createClass({
             }else if(row===2){
               return <div className="square player"></div>;
             }else if(row===3){
-              return <div className="square enemy"></div>;
+              return <div className="square enemy">Y</div>;
             }else if(row===4){
               return <div className="square health">+</div>;
             }
@@ -78,61 +78,70 @@ var Container = React.createClass({
         healthCount--;
       }
     }
+    var enemyCount = 5;   //Add Enemies
+    while(enemyCount>0){
+      var eX = Math.round(Math.random() * (dungeonWidth-2)) + 1;
+      var eY = Math.round(Math.random() * (dungeonHeight-2)) + 1;
+      if(dungeon[eX][eY]===1){
+        dungeon[eX][eY] = 3;
+        enemyCount--;
+      }
+    }
     this.setState({dungeon: dungeon, player: {x:pX,y:pY}});
   },
   move: function(e){
-    var moved = false;
+    var board = this.state.dungeon;
+    var pX = this.state.player.x;
+    var pY = this.state.player.y;
+    
+    switch(e.keyCode){
+      case 37:
+      case 65:
+        this.moveSpace(-1,0);
+        break;
+      case 38:
+      case 87:
+        this.moveSpace(0,-1);
+        break;
+      case 39:
+      case 68:
+        this.moveSpace(1,0);
+        break;
+      case 40:
+      case 83:
+        this.moveSpace(0,1);
+        break;
+    }
+    
+  },
+  moveSpace: function(xAmt, yAmt){
+    var allowMove = false;
     var board = this.state.dungeon;
     var pX = this.state.player.x;
     var pY = this.state.player.y;
     var newHealth = this.state.health;
-    switch(e.keyCode){
-      case 37:
-      case 65:
-        if(board[pX-1][pY]!==0){
-          if(board[pX-1][pY]===4){
-            newHealth+=10;
-          }
-          board[pX][pY] = 1;
-          pX--;
-          board[pX][pY] = 2;
+    if(board[pX+xAmt][pY+yAmt]!==0){
+      if(board[pX+xAmt][pY+yAmt]===3){
+        if(wonFight()){
+          allowMove = true;
         }
-        break;
-      case 38:
-      case 87:
-        if(board[pX][pY-1]!==0){
-          if(board[pX][pY-1]===4){
-            newHealth+=10;
-          }
-          board[pX][pY] = 1;
-          pY--;
-          board[pX][pY] = 2;
+      }else{
+        allowMove = true;
+      }
+      if(allowMove){
+        if(board[pX+xAmt][pY+yAmt]===4){
+          newHealth+=10;
         }
-        break;
-      case 39:
-      case 68:
-        if(board[pX+1][pY]!==0){
-          if(board[pX+1][pY]===4){
-            newHealth+=10;
-          }
-          board[pX][pY] = 1;
-          pX++;
-          board[pX][pY] = 2;
-        }
-        break;
-      case 40:
-      case 83:
-        if(board[pX][pY+1]!==0){
-          if(board[pX][pY+1]===4){
-            newHealth+=10;
-          }
-          board[pX][pY] = 1;
-          pY++;
-          board[pX][pY] = 2;
-        }
-        break;
+        board[pX][pY] = 1;
+        pX+=xAmt;
+        pY+=yAmt;
+        board[pX][pY] = 2;
+      }
     }
     this.setState({player: {x: pX,y:pY}, dungeon: board, health: newHealth});
+  },
+  fightWon: function(){
+    return false;   //UPDATE CODE FOR FIGHTING
   },
   render: function(){
     return (
