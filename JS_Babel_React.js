@@ -22,9 +22,11 @@ var Game = React.createClass({
         <div className="col">
           {col.map(function(row){
             if(row===0){
-              return <div className="square wall"></div>
+              return <div className="square wall"></div>;
             }else if(row===1){
-              return <div className="square floor"></div>
+              return <div className="square floor"></div>;
+            }else if(row===2){
+              return <div className="square player"></div>;
             }
       })}
         </div>
@@ -40,10 +42,11 @@ var Game = React.createClass({
 
 var Container = React.createClass({
   getInitialState: function(){
-    return {dungeon: [], mounted: false};
+    return {dungeon: [], mounted: false, player: null};
   },
   componentDidMount: function(){
     this.setState({dungeon: this.generateDungeon(), mounted: true});
+    document.addEventListener("keydown", this.move);
   },
   generateDungeon: function(){
     var dungeon = [];
@@ -58,13 +61,54 @@ var Container = React.createClass({
       }
       dungeon.push(col);
     }
+    var pX = 2;
+    var pY = 2;
+    dungeon[pX][pY] = 2;
+    this.setState({player: {x:pX,y:pY}});
     return dungeon;
+  },
+  move: function(e){
+    var moved = false;
+    var board = this.state.dungeon;
+    var pX = this.state.player.x;
+    var pY = this.state.player.y;
+    switch(e.keyCode){
+      case 37:
+        if(board[pX-1][pY]!==0){
+          board[pX][pY] = 1;
+          pX--;
+          board[pX][pY] = 2;
+        }
+        break;
+      case 38:
+        if(board[pX][pY-1]!==0){
+          board[pX][pY] = 1;
+          pY--;
+          board[pX][pY] = 2;
+        }
+        break;
+      case 39:
+        if(board[pX+1][pY]!==0){
+          board[pX][pY] = 1;
+          pX++;
+          board[pX][pY] = 2;
+        }
+        break;
+      case 40:
+        if(board[pX][pY+1]!==0){
+          board[pX][pY] = 1;
+          pY++;
+          board[pX][pY] = 2;
+        }
+        break;
+    }
+    this.setState({player: {x: pX,y:pY}, dungeon: board});
   },
   render: function(){
     return (
       <div className="container">
         <Stats />
-        <Game dungeon={this.state.dungeon} />
+        <Game dungeon={this.state.dungeon} move={this.move} />
       </div>
     );
   }
