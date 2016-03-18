@@ -27,6 +27,10 @@ var Game = React.createClass({
               return <div className="square floor"></div>;
             }else if(row===2){
               return <div className="square player"></div>;
+            }else if(row===3){
+              return <div className="square enemy"></div>;
+            }else if(row===4){
+              return <div className="square health">+</div>;
             }
       })}
         </div>
@@ -42,10 +46,11 @@ var Game = React.createClass({
 
 var Container = React.createClass({
   getInitialState: function(){
-    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: "fist", level: 1};
+    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: "fist", level: 1, enemies: [], weaponItem: null, exit: null};
   },
   componentDidMount: function(){
-    this.setState({dungeon: this.generateDungeon(), mounted: true});
+    this.setState({mounted: true});
+    this.generateDungeon();
     document.addEventListener("keydown", this.move);
   },
   generateDungeon: function(){
@@ -61,21 +66,33 @@ var Container = React.createClass({
       }
       dungeon.push(col);
     }
-    var pX = 2;
+    var pX = 2;   //Add Player
     var pY = 2;
     dungeon[pX][pY] = 2;
-    this.setState({player: {x:pX,y:pY}});
-    return dungeon;
+    var healthCount = 4;    //Add Health
+    while(healthCount>0){
+      var hX = Math.round(Math.random()*(dungeonWidth-2))+1;
+      var hY = Math.round(Math.random()*(dungeonHeight-2))+1;
+      if(dungeon[hX][hY]===1){
+        dungeon[hX][hY] = 4;
+        healthCount--;
+      }
+    }
+    this.setState({dungeon: dungeon, player: {x:pX,y:pY}});
   },
   move: function(e){
     var moved = false;
     var board = this.state.dungeon;
     var pX = this.state.player.x;
     var pY = this.state.player.y;
+    var newHealth = this.state.health;
     switch(e.keyCode){
       case 37:
       case 65:
         if(board[pX-1][pY]!==0){
+          if(board[pX-1][pY]===4){
+            newHealth+=10;
+          }
           board[pX][pY] = 1;
           pX--;
           board[pX][pY] = 2;
@@ -84,6 +101,9 @@ var Container = React.createClass({
       case 38:
       case 87:
         if(board[pX][pY-1]!==0){
+          if(board[pX][pY-1]===4){
+            newHealth+=10;
+          }
           board[pX][pY] = 1;
           pY--;
           board[pX][pY] = 2;
@@ -92,6 +112,9 @@ var Container = React.createClass({
       case 39:
       case 68:
         if(board[pX+1][pY]!==0){
+          if(board[pX+1][pY]===4){
+            newHealth+=10;
+          }
           board[pX][pY] = 1;
           pX++;
           board[pX][pY] = 2;
@@ -100,13 +123,16 @@ var Container = React.createClass({
       case 40:
       case 83:
         if(board[pX][pY+1]!==0){
+          if(board[pX][pY+1]===4){
+            newHealth+=10;
+          }
           board[pX][pY] = 1;
           pY++;
           board[pX][pY] = 2;
         }
         break;
     }
-    this.setState({player: {x: pX,y:pY}, dungeon: board});
+    this.setState({player: {x: pX,y:pY}, dungeon: board, health: newHealth});
   },
   render: function(){
     return (
