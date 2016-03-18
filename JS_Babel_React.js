@@ -5,10 +5,10 @@ var Stats = React.createClass({
   render: function(){
     return (
       <div className="stats">
-        <p className="health">Health: 100</p>
-        <p className="xp">XP: 0/100</p>
-        <p className="weapon">Weapon: fist</p>
-        <p className="level">Level: 1</p>
+        <p className="health">Health: {this.props.health}</p>
+        <p className="xp">XP: {this.props.xpCur}/{this.props.xpNext}</p>
+        <p className="weapon">Weapon: {this.props.weapon}</p>
+        <p className="level">Level: {this.props.level}</p>
       </div>
     );
   }
@@ -42,7 +42,7 @@ var Game = React.createClass({
 
 var Container = React.createClass({
   getInitialState: function(){
-    return {dungeon: [], mounted: false, player: null};
+    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: "fist", level: 1};
   },
   componentDidMount: function(){
     this.setState({dungeon: this.generateDungeon(), mounted: true});
@@ -74,6 +74,7 @@ var Container = React.createClass({
     var pY = this.state.player.y;
     switch(e.keyCode){
       case 37:
+      case 65:
         if(board[pX-1][pY]!==0){
           board[pX][pY] = 1;
           pX--;
@@ -81,6 +82,7 @@ var Container = React.createClass({
         }
         break;
       case 38:
+      case 87:
         if(board[pX][pY-1]!==0){
           board[pX][pY] = 1;
           pY--;
@@ -88,6 +90,7 @@ var Container = React.createClass({
         }
         break;
       case 39:
+      case 68:
         if(board[pX+1][pY]!==0){
           board[pX][pY] = 1;
           pX++;
@@ -95,6 +98,7 @@ var Container = React.createClass({
         }
         break;
       case 40:
+      case 83:
         if(board[pX][pY+1]!==0){
           board[pX][pY] = 1;
           pY++;
@@ -107,7 +111,7 @@ var Container = React.createClass({
   render: function(){
     return (
       <div className="container">
-        <Stats />
+        <Stats health={this.state.health} xpCur={this.state.xpCurrent} xpNext={this.state.xpNext} weapon={this.state.weapon} level={this.state.level} />
         <Game dungeon={this.state.dungeon} move={this.move} />
       </div>
     );
