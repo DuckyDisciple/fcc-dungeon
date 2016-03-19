@@ -46,7 +46,7 @@ var Game = React.createClass({
 
 var Container = React.createClass({
   getInitialState: function(){
-    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: "fist", level: 1, enemies: [], weaponItem: null, exit: null};
+    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: "fist", level: 1, strength: 5, enemies: [], enemyStrength: 3, weaponItem: null, exit: null};
   },
   componentDidMount: function(){
     this.setState({mounted: true});
@@ -79,15 +79,17 @@ var Container = React.createClass({
       }
     }
     var enemyCount = 5;   //Add Enemies
+    var enemyList = [];
     while(enemyCount>0){
       var eX = Math.round(Math.random() * (dungeonWidth-2)) + 1;
       var eY = Math.round(Math.random() * (dungeonHeight-2)) + 1;
       if(dungeon[eX][eY]===1){
         dungeon[eX][eY] = 3;
+        enemyList.push({x:eX, y:eY, health: 20});
         enemyCount--;
       }
     }
-    this.setState({dungeon: dungeon, player: {x:pX,y:pY}});
+    this.setState({dungeon: dungeon, player: {x:pX,y:pY}, enemies: enemyList});
   },
   move: function(e){
     var board = this.state.dungeon;
@@ -122,9 +124,10 @@ var Container = React.createClass({
     var newHealth = this.state.health;
     if(board[pX+xAmt][pY+yAmt]!==0){
       if(board[pX+xAmt][pY+yAmt]===3){
-        if(wonFight()){
+        if(this.fightWon(pX+xAmt,pY+yAmt)){
           allowMove = true;
         }
+        newHealth = this.state.health;
       }else{
         allowMove = true;
       }
@@ -140,8 +143,35 @@ var Container = React.createClass({
     }
     this.setState({player: {x: pX,y:pY}, dungeon: board, health: newHealth});
   },
-  fightWon: function(){
-    return false;   //UPDATE CODE FOR FIGHTING
+  fightWon: function(eX, eY){
+    var allEnemies = this.state.enemies;
+    var curEnemyIndex;
+    var myHealth = this.state.health;
+    var myXp = this.state.xpCurrent;
+    var nextXp = this.state.xpNext;
+    var myLevel = this.state.level;
+    for(var i in allEnemies){
+      if(allEnemies[i].x===eX && allEnemies[i].y===eY){
+        curEnemyIndex = i;
+        break;
+      }
+    }
+    allEnemies[curEnemyIndex].health-=this.state.strength;
+    var victory = true;
+    if(allEnemies[curEnemyIndex].health > 0){
+      victory = false
+      myHealth-=this.state.enemyStrength;
+    }else{
+      allEnemies.splice(curEnemyIndex, 1);
+      myXp+=40;
+      if(myXp>nextXp){
+        myXp-=nextXp;
+        nextXp+=50;
+        myLevel++;
+      }
+    }
+    this.setState({health: myHealth, enemies: allEnemies, xpCurrent: myXp, xpNext: nextXp, level: myLevel});
+    return victory;
   },
   render: function(){
     return (
