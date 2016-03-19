@@ -31,6 +31,8 @@ var Game = React.createClass({
               return <div className="square enemy">Y</div>;
             }else if(row===4){
               return <div className="square health">+</div>;
+            }else if(row===5){
+              return <div className="square weapon">i</div>;
             }
       })}
         </div>
@@ -89,6 +91,15 @@ var Container = React.createClass({
         enemyCount--;
       }
     }
+    var weaponPlaced = false;   //Add weapon
+    while(!weaponPlaced){
+      var wX = Math.round(Math.random() * (dungeonWidth-2)) + 1;
+      var wY = Math.round(Math.random() * (dungeonHeight-2)) +1;
+      if(dungeon[wX][wY]===1){
+        dungeon[wX][wY] = 5;
+        weaponPlaced = true;
+      }
+    }
     this.setState({dungeon: dungeon, player: {x:pX,y:pY}, enemies: enemyList});
   },
   move: function(e){
@@ -121,9 +132,11 @@ var Container = React.createClass({
     var board = this.state.dungeon;
     var pX = this.state.player.x;
     var pY = this.state.player.y;
+    var newSpot = board[pX+xAmt][pY+yAmt];
     var newHealth = this.state.health;
-    if(board[pX+xAmt][pY+yAmt]!==0){
-      if(board[pX+xAmt][pY+yAmt]===3){
+    var newWeapon = this.state.weapon;
+    if(newSpot!==0){
+      if(newSpot===3){
         if(this.fightWon(pX+xAmt,pY+yAmt)){
           allowMove = true;
         }
@@ -132,8 +145,10 @@ var Container = React.createClass({
         allowMove = true;
       }
       if(allowMove){
-        if(board[pX+xAmt][pY+yAmt]===4){
+        if(newSpot===4){
           newHealth+=10;
+        }else if(newSpot===5){
+          newWeapon = "stick";
         }
         board[pX][pY] = 1;
         pX+=xAmt;
@@ -141,7 +156,7 @@ var Container = React.createClass({
         board[pX][pY] = 2;
       }
     }
-    this.setState({player: {x: pX,y:pY}, dungeon: board, health: newHealth});
+    this.setState({player: {x: pX,y:pY}, dungeon: board, health: newHealth, weapon: newWeapon});
   },
   fightWon: function(eX, eY){
     var allEnemies = this.state.enemies;
