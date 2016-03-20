@@ -41,6 +41,8 @@ var Game = React.createClass({
               return <div className="square health">+</div>;
             }else if(row===5){
               return <div className="square weapon">i</div>;
+            }else if(row===6){
+              return <div className="square boss">**</div>;
             }
       })}
         </div>
@@ -56,7 +58,7 @@ var Game = React.createClass({
 
 var Container = React.createClass({
   getInitialState: function(){
-    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: weapons[0], level: 1, floor: 1, strength: 5, enemies: [], enemyStrength: 3, exit: null};
+    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: weapons[0], level: 1, floor: 1, strength: 5, enemies: [], enemyStrength: 3, exit: null, boss: null};
   },
   componentDidMount: function(){
     this.setState({mounted: true});
@@ -65,6 +67,7 @@ var Container = React.createClass({
   },
   generateDungeon: function(){
     var dungeon = [];
+    var newBoss = null;
     for(var i=0; i<dungeonWidth; i++){
       var col = [];
       for(var j=0; j<dungeonHeight; j++){
@@ -133,8 +136,18 @@ var Container = React.createClass({
       var exitLoc = {x: exitX, y:exitY};
     }else{
       var exitLoc = {x: 0, y: 0};
+      var bossPlaced = false;   //Add Boss
+      while(!bossPlaced){
+        var bX = Math.floor(Math.random()*(dungeonWidth-2)) + 1;
+        var bY = Math.floor(Math.random()*(dungeonHeight-2)) +1;
+        if(dungeon[bX][bY]===1){
+          dungeon[bX][bY] = 6;
+          bossPlaced = true;
+          newBoss = {x: bX, y: bY, health: 100};
+        }
+      }
     }
-    this.setState({dungeon: dungeon, player: {x:pX,y:pY}, enemies: enemyList, exit: exitLoc});
+    this.setState({dungeon: dungeon, player: {x:pX,y:pY}, enemies: enemyList, exit: exitLoc, boss: newBoss});
   },
   move: function(e){
     var board = this.state.dungeon;
@@ -176,6 +189,12 @@ var Container = React.createClass({
           allowMove = true;
         }
         newHealth = this.state.health;
+      }else if(newSpot===6){
+        if(this.bossFightWon(pX+xAmt,pY+yAmt)){
+          allowMove = true;
+          //generate win screen
+        }
+        newHealth = this.state.health;
       }else{
         allowMove = true;
       }
@@ -198,6 +217,25 @@ var Container = React.createClass({
       this.generateDungeon();
     }
   },
+  bossFightWon: function(bX, bY){
+    var myHealth = this.state.health;
+    var myLevel = this.state.level;
+    var boss = this.state.boss;
+    var myAttack = Math.round(Math.random()*(this.state.weapon.power * this.state.level))+this.state.strength;
+    boss.health-=myAttack;
+    var victory = true;
+    var bossAttack = Math.round(Math.random()*(this.state.enemyStrength * this.state.floor)*2)+this.state.enemyStrength;
+    if(boss.health > 0){
+      victory = false;
+      myHealth-=bossAttack;
+    }
+    else{
+      //Victory!
+      console.log("Victory!");
+    }
+    this.setState({health: myHealth, boss: boss});
+    return victory;
+  },
   fightWon: function(eX, eY){
     var allEnemies = this.state.enemies;
     var curEnemyIndex;
@@ -205,13 +243,13 @@ var Container = React.createClass({
     var myXp = this.state.xpCurrent;
     var nextXp = this.state.xpNext;
     var myLevel = this.state.level;
+    var myAttack = Math.round(Math.random()*(this.state.weapon.power * this.state.level))+this.state.strength;
     for(var i in allEnemies){
       if(allEnemies[i].x===eX && allEnemies[i].y===eY){
         curEnemyIndex = i;
         break;
       }
     }
-    var myAttack = Math.round(Math.random()*(this.state.weapon.power * this.state.level))+this.state.strength;
     allEnemies[curEnemyIndex].health-=myAttack;
     var victory = true;
     if(allEnemies[curEnemyIndex].health > 0){
