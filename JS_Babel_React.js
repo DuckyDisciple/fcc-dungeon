@@ -9,6 +9,7 @@ var Stats = React.createClass({
         <p className="xp">XP: {this.props.xpCur}/{this.props.xpNext}</p>
         <p className="weapon">Weapon: {this.props.weapon}</p>
         <p className="level">Level: {this.props.level}</p>
+        <p className="floor">Floor: {this.props.floor}</p>
       </div>
     );
   }
@@ -48,7 +49,7 @@ var Game = React.createClass({
 
 var Container = React.createClass({
   getInitialState: function(){
-    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: "fist", level: 1, strength: 5, enemies: [], enemyStrength: 3, weaponItem: null, exit: null};
+    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: {name:"fist", power:3}, level: 1, floor: 1, strength: 5, enemies: [], enemyStrength: 3, exit: null};
   },
   componentDidMount: function(){
     this.setState({mounted: true});
@@ -148,7 +149,7 @@ var Container = React.createClass({
         if(newSpot===4){
           newHealth+=10;
         }else if(newSpot===5){
-          newWeapon = "stick";
+          newWeapon = {name:"stick", power: 5};
         }
         board[pX][pY] = 1;
         pX+=xAmt;
@@ -171,11 +172,13 @@ var Container = React.createClass({
         break;
       }
     }
-    allEnemies[curEnemyIndex].health-=this.state.strength;
+    var myAttack = Math.round(Math.random()*(this.state.weapon.power * this.state.level))+this.state.strength;
+    allEnemies[curEnemyIndex].health-=myAttack;
     var victory = true;
     if(allEnemies[curEnemyIndex].health > 0){
       victory = false
-      myHealth-=this.state.enemyStrength;
+      var enAttack = Math.round(Math.random()*(this.state.enemyStrength * this.state.floor))+this.state.enemyStrength;
+      myHealth-=enAttack;
     }else{
       allEnemies.splice(curEnemyIndex, 1);
       myXp+=40;
@@ -191,7 +194,7 @@ var Container = React.createClass({
   render: function(){
     return (
       <div className="container">
-        <Stats health={this.state.health} xpCur={this.state.xpCurrent} xpNext={this.state.xpNext} weapon={this.state.weapon} level={this.state.level} />
+        <Stats health={this.state.health} xpCur={this.state.xpCurrent} xpNext={this.state.xpNext} weapon={this.state.weapon.name} level={this.state.level} floor={this.state.floor}/>
         <Game dungeon={this.state.dungeon} move={this.move} />
       </div>
     );
