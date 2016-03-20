@@ -1,5 +1,12 @@
 var dungeonWidth = 50;
 var dungeonHeight = 40;
+var weapons = [
+  {name: "fist", power: 3},
+  {name: "stick", power: 5},
+  {name: "axe", power: 9},
+  {name: "sword", power: 14},
+  {name: "lightsaber", power: 20}
+];
 
 var Stats = React.createClass({
   render: function(){
@@ -49,7 +56,7 @@ var Game = React.createClass({
 
 var Container = React.createClass({
   getInitialState: function(){
-    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: {name:"fist", power:3}, level: 1, floor: 1, strength: 5, enemies: [], enemyStrength: 3, exit: null};
+    return {dungeon: [], mounted: false, player: null, health: 100, xpCurrent: 0, xpNext: 100, weapon: weapons[0], level: 1, floor: 1, strength: 5, enemies: [], enemyStrength: 3, exit: null};
   },
   componentDidMount: function(){
     this.setState({mounted: true});
@@ -101,7 +108,33 @@ var Container = React.createClass({
         weaponPlaced = true;
       }
     }
-    this.setState({dungeon: dungeon, player: {x:pX,y:pY}, enemies: enemyList});
+    if(this.state.floor<4){
+      var exitSide = Math.round(Math.random()*4);   //Add Exit
+      switch(exitSide){
+        case 0:
+          var exitX = Math.floor(Math.random()*(dungeonWidth-2)) + 1;
+          var exitY = 0;
+          break;
+        case 1:
+          var exitX = dungeonWidth-1;
+          var exitY = Math.floor(Math.random()*(dungeonHeight-2)) + 1;
+          break;
+        case 2:
+          var exitX = Math.floor(Math.random()*(dungeonWidth-2)) + 1;
+          var exitY = dungeonHeight-1;
+          break;
+        case 3:
+        case 4:
+          var exitX = 0;
+          var exitY = Math.floor(Math.random()*(dungeonHeight-2)) + 1;
+          break;
+      }
+      dungeon[exitX][exitY] = 1;
+      var exitLoc = {x: exitX, y:exitY};
+    }else{
+      var exitLoc = {x: 0, y: 0};
+    }
+    this.setState({dungeon: dungeon, player: {x:pX,y:pY}, enemies: enemyList, exit: exitLoc});
   },
   move: function(e){
     var board = this.state.dungeon;
@@ -136,6 +169,7 @@ var Container = React.createClass({
     var newSpot = board[pX+xAmt][pY+yAmt];
     var newHealth = this.state.health;
     var newWeapon = this.state.weapon;
+    var floor = this.state.floor;
     if(newSpot!==0){
       if(newSpot===3){
         if(this.fightWon(pX+xAmt,pY+yAmt)){
@@ -149,7 +183,7 @@ var Container = React.createClass({
         if(newSpot===4){
           newHealth+=10;
         }else if(newSpot===5){
-          newWeapon = {name:"stick", power: 5};
+          newWeapon = weapons[floor];
         }
         board[pX][pY] = 1;
         pX+=xAmt;
@@ -158,6 +192,11 @@ var Container = React.createClass({
       }
     }
     this.setState({player: {x: pX,y:pY}, dungeon: board, health: newHealth, weapon: newWeapon});
+    if(this.state.player.x === this.state.exit.x && this.state.player.y === this.state.exit.y){
+      floor++;
+      this.setState({floor: floor});
+      this.generateDungeon();
+    }
   },
   fightWon: function(eX, eY){
     var allEnemies = this.state.enemies;
