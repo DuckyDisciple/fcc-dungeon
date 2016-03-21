@@ -28,6 +28,7 @@ var Game = React.createClass({
   render: function(){
     var board = this.props.dungeon;
     var player = this.props.player;
+    var retry = this.props.retry;
     var boardLayout = board.map(function(col, cIndex){
       return (
         <div className="col">
@@ -62,7 +63,7 @@ var Game = React.createClass({
             }
             var xDiff = Math.abs(player.y-rIndex);
             var yDiff = Math.abs(player.x-cIndex);
-            if(xDiff+yDiff > 4){
+            if(xDiff+yDiff > 4 && !retry){
               classes+=" dark";
             }
             return <div className={classes}>{content}</div>;
@@ -334,7 +335,7 @@ var Container = React.createClass({
     return (
       <div className="container">
         <Stats health={this.state.health} xpCur={this.state.xpCurrent} xpNext={this.state.xpNext} weapon={this.state.weapon.name} level={this.state.level} floor={this.state.floor}/>
-        <Game dungeon={this.state.dungeon} move={this.move} player={this.state.player} />
+        <Game dungeon={this.state.dungeon} move={this.move} player={this.state.player} retry={this.state.retryScreen} />
       </div>
     );
   }
