@@ -81,6 +81,23 @@ var Container = React.createClass({
       }
       dungeon.push(col);
     }
+    var wallH = Math.floor(Math.random()*(dungeonHeight-28))+14;    //Add walls
+    var doorH = Math.floor(Math.random()*(dungeonWidth-4))+2;
+    for(var i=0; i<dungeonWidth; i++){
+      if(i!==doorH) dungeon[i][wallH]=0;
+    }
+    var wallV1 = Math.floor(Math.random()*(dungeonWidth-12))+6;
+    if(wallV1===doorH) wallV1++;
+    var doorV1 = Math.floor(Math.random()*(wallH-2))+1;
+    for(var i=0; i<wallH; i++){
+      if(i!==doorV1) dungeon[wallV1][i]=0;
+    }
+    var wallV2 = Math.floor(Math.random()*(dungeonWidth-12))+6;
+    if(wallV2===doorH) wallV2++;
+    var doorV2 = Math.floor(Math.random()*(dungeonHeight-wallH-2))+wallH+1;
+    for(var i=wallH; i<dungeonHeight; i++){
+      if(i!==doorV2) dungeon[wallV2][i]=0;
+    }
     var pX = 2;   //Add Player
     var pY = 2;
     dungeon[pX][pY] = 2;
@@ -118,20 +135,24 @@ var Container = React.createClass({
       switch(exitSide){
         case 0:
           var exitX = Math.floor(Math.random()*(dungeonWidth-2)) + 1;
+          if(exitX===wallV1) exitX++;
           var exitY = 0;
           break;
         case 1:
           var exitX = dungeonWidth-1;
           var exitY = Math.floor(Math.random()*(dungeonHeight-2)) + 1;
+          if(exitY===wallH) exitY++;
           break;
         case 2:
           var exitX = Math.floor(Math.random()*(dungeonWidth-2)) + 1;
+          if(exitX===wallV2) exitX++;
           var exitY = dungeonHeight-1;
           break;
         case 3:
         case 4:
           var exitX = 0;
           var exitY = Math.floor(Math.random()*(dungeonHeight-2)) + 1;
+          if(exitY===wallH) exitY++;
           break;
       }
       dungeon[exitX][exitY] = 1;
