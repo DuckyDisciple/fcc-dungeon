@@ -27,25 +27,45 @@ var Stats = React.createClass({
 var Game = React.createClass({
   render: function(){
     var board = this.props.dungeon;
-    var boardLayout = board.map(function(col){
+    var player = this.props.player;
+    var boardLayout = board.map(function(col, cIndex){
       return (
         <div className="col">
-          {col.map(function(row){
-            if(row===0){
-              return <div className="square wall"></div>;
-            }else if(row===1){
-              return <div className="square floor"></div>;
-            }else if(row===2){
-              return <div className="square player"></div>;
-            }else if(row===3){
-              return <div className="square enemy">Y</div>;
-            }else if(row===4){
-              return <div className="square health">+</div>;
-            }else if(row===5){
-              return <div className="square weapon">i</div>;
-            }else if(row===6){
-              return <div className="square boss">**</div>;
+          {col.map(function(row, rIndex){
+            var classes = "square";
+            var content = "";
+            switch(row){
+              case 0:
+                classes+=" wall";
+                break;
+              case 1:
+                classes+=" floor";
+                break;
+              case 2:
+                classes+=" player";
+                break
+              case 3:
+                classes+=" enemy";
+                content="Y";
+                break;
+              case 4:
+                classes+=" health";
+                content="+";
+                break;
+              case 5:
+                classes+=" weapon";
+                content="i";
+                break;
+              case 6:
+                classes+=" boss";
+                content="**";
             }
+            var xDiff = Math.abs(player.y-rIndex);
+            var yDiff = Math.abs(player.x-cIndex);
+            if(xDiff+yDiff > 4){
+              classes+=" dark";
+            }
+            return <div className={classes}>{content}</div>;
       })}
         </div>
       );
@@ -314,7 +334,7 @@ var Container = React.createClass({
     return (
       <div className="container">
         <Stats health={this.state.health} xpCur={this.state.xpCurrent} xpNext={this.state.xpNext} weapon={this.state.weapon.name} level={this.state.level} floor={this.state.floor}/>
-        <Game dungeon={this.state.dungeon} move={this.move} />
+        <Game dungeon={this.state.dungeon} move={this.move} player={this.state.player} />
       </div>
     );
   }
